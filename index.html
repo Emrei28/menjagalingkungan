@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bersihkan Taman Kita!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFBF1;
+    --leaf:#3FA35A;
+    --leaf-dark:#2B7A42;
+    --sky:#4FBEDB;
+    --sun:#FFC94A;
+    --coral:#FF7A5C;
+    --ink:#2B3A32;
+    --paper:#FFFFFF;
+    --organik:#5FAE4A;
+    --anorganik:#EFAA2E;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Baloo 2', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px 14px;
+    position:relative;
+  }
+
+  .blob{ position:fixed; border-radius:50%; filter:blur(2px); opacity:0.5; z-index:0; }
+  .blob1{width:170px;height:170px;background:#CDEFD8;top:-60px;left:-60px;}
+  .blob2{width:140px;height:140px;background:#CDEEF7;bottom:-40px;right:-40px;}
+  .blob3{width:90px;height:90px;background:#FFE9BE;top:60%;left:-30px;}
+
+  .stage{ position:relative; z-index:1; width:100%; max-width:480px; }
+
+  .card{
+    background:var(--paper);
+    border:3px solid var(--ink);
+    border-radius:32px 12px 32px 12px;
+    box-shadow:7px 7px 0 var(--ink);
+    padding:20px 20px 24px;
+  }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px; gap:8px; flex-wrap:wrap;
+  }
+  .title{
+    font-weight:800; font-size:1.15rem; color:var(--leaf-dark); margin:0; line-height:1.2;
+  }
+  .stat-row{ display:flex; gap:8px; }
+  .chip{
+    border:2.5px solid var(--ink); border-radius:12px; padding:4px 10px;
+    font-weight:700; font-size:0.9rem; box-shadow:3px 3px 0 var(--ink); white-space:nowrap;
+  }
+  .chip.timer{ background:var(--sky); color:#fff; }
+  .chip.score{ background:var(--sun); }
+
+  .hearts{ font-size:1.05rem; letter-spacing:2px; }
+
+  /* ---------- INTRO ---------- */
+  .intro-emoji{ font-size:3rem; text-align:center; margin-bottom:4px;}
+  .intro-text{ font-size:1rem; line-height:1.55; text-align:center; margin:0 0 10px; }
+  .legend{
+    display:flex; gap:10px; margin:14px 0 18px;
+  }
+  .legend-box{
+    flex:1; border-radius:16px; padding:10px; text-align:center;
+    border:2.5px solid var(--ink);
+  }
+  .legend-box.organik{ background:#EAF7E4; }
+  .legend-box.anorganik{ background:#FFF3DC; }
+  .legend-title{ font-weight:800; font-size:0.9rem; margin-bottom:4px; }
+  .legend-icons{ font-size:1.4rem; }
+
+  /* ---------- SCENE ---------- */
+  .scene{
+    position:relative;
+    height:230px;
+    border-radius:20px;
+    border:3px solid var(--ink);
+    overflow:hidden;
+    background:linear-gradient(to bottom, #BEE7F5 0%, #BEE7F5 38%, #BFE3A0 38%, #9FD17E 100%);
+    margin-bottom:14px;
+  }
+  .pollution{
+    position:absolute; inset:0;
+    background:rgba(107,88,66,0.35);
+    transition:opacity .5s ease;
+    pointer-events:none;
+  }
+  .trash{
+    position:absolute;
+    font-size:1.9rem;
+    cursor:grab;
+    touch-action:none;
+    transition:transform .15s ease;
+    filter:drop-shadow(1px 2px 0 rgba(0,0,0,0.15));
+  }
+  .trash.dragging{
+    cursor:grabbing;
+    z-index:50;
+    transform:scale(1.2);
+    filter:drop-shadow(2px 5px 0 rgba(0,0,0,0.25));
+  }
+
+  .bins-row{ display:flex; gap:10px; margin-bottom:10px; }
+  .bin{
+    flex:1;
+    border:3px solid var(--ink);
+    border-radius:16px;
+    padding:10px 6px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:4px 4px 0 var(--ink);
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .bin:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .bin.organik{ background:#EAF7E4; }
+  .bin.anorganik{ background:#FFF3DC; }
+  .bin.drag-over{
+    transform:scale(1.07);
+    box-shadow:6px 6px 0 var(--ink);
+    filter:brightness(1.05);
+  }
+  .bin-label{ font-weight:800; font-size:0.85rem; margin-top:2px; }
+  .bin-emoji{ font-size:1.6rem; }
+
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+  .shake{ animation:shake .3s ease; }
+
+  .feedback{ text-align:center; font-weight:700; min-height:26px; margin-bottom:6px; font-size:0.98rem; }
+  .feedback.good{ color:var(--leaf-dark); }
+  .feedback.bad{ color:var(--coral); }
+
+  .btn{
+    display:block; width:100%; border:3px solid var(--ink); border-radius:16px;
+    background:var(--sun); padding:13px; font-family:inherit; font-weight:800;
+    font-size:1.02rem; color:var(--ink); cursor:pointer;
+    box-shadow:4px 4px 0 var(--ink); transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .btn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+
+  /* ---------- END ---------- */
+  .end-emoji{ font-size:3.2rem; text-align:center; }
+  .end-title{ text-align:center; font-weight:800; font-size:1.3rem; color:var(--leaf-dark); margin:4px 0 2px; }
+  .end-score{ text-align:center; font-size:1.02rem; margin-bottom:6px; }
+  .stars{ text-align:center; font-size:2.1rem; margin-bottom:14px; letter-spacing:6px; }
+  .star{ display:inline-block; opacity:0; transform:scale(0.3); animation:starPop .4s ease forwards; }
+  @keyframes starPop{ to{ opacity:1; transform:scale(1); } }
+  .ajakan-box{
+    background:#EAF7E4; border:2px solid var(--leaf); border-radius:14px;
+    padding:12px 14px; text-align:center; font-weight:700; color:var(--leaf-dark);
+    font-size:0.98rem; margin-bottom:18px; line-height:1.4;
+  }
+
+  @media (max-width:380px){
+    .title{ font-size:1rem; }
+    .scene{ height:200px; }
+    .trash{ font-size:1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<div class="stage">
+  <div class="card">
+
+    <!-- INTRO SCREEN -->
+    <div class="screen active" id="intro-screen">
+      <div class="intro-emoji">🌳🗑️🌍</div>
+      <h1 class="title" style="text-align:center; font-size:1.3rem;">Bersihkan Taman Kita!</h1>
+      <p class="intro-text">Taman ini penuh sampah! Tarik (drag) sampahnya ke tempat sampah yang benar.</p>
+
+      <div class="legend">
+        <div class="legend-box organik">
+          <div class="legend-title">Organik</div>
+          <div class="legend-icons">🍌 🍂 🥚</div>
+        </div>
+        <div class="legend-box anorganik">
+          <div class="legend-title">Anorganik</div>
+          <div class="legend-icons">🧴 🥫 🛍️</div>
+        </div>
+      </div>
+
+      <p class="intro-text">Sortir sebelum waktu habis dan jangan sampai salah 3 kali ya!</p>
+      <button class="btn" id="start-btn">Mulai Bersih-Bersih! ▸</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div class="screen" id="game-screen">
+      <div class="topbar">
+        <p class="title">Bersihkan Taman</p>
+        <div class="stat-row">
+          <div class="chip timer" id="timer-chip">⏱ 45</div>
+          <div class="chip score" id="score-chip">🗑️ 0/10</div>
+        </div>
+      </div>
+      <div class="hearts" id="hearts">❤️❤️❤️</div>
+      <br>
+
+      <div class="scene" id="scene">
+        <div class="pollution" id="pollution"></div>
+      </div>
+
+      <div class="bins-row">
+        <div class="bin organik" data-type="organik" id="bin-organik">
+          <div class="bin-emoji">🟢</div>
+          <div class="bin-label">Organik</div>
+        </div>
+        <div class="bin anorganik" data-type="anorganik" id="bin-anorganik">
+          <div class="bin-emoji">🟡</div>
+          <div class="bin-label">Anorganik</div>
+        </div>
+      </div>
+
+      <p class="feedback" id="feedback"></p>
+    </div>
+
+    <!-- END SCREEN -->
+    <div class="screen" id="end-screen">
+      <div class="end-emoji" id="end-emoji">🎉</div>
+      <p class="end-title" id="end-title">Taman Bersih!</p>
+      <p class="end-score" id="end-score-text"></p>
+      <div class="stars" id="stars"></div>
+      <div class="ajakan-box">Mari selalu membuang sampah pada tempatnya untuk menjaga lingkungan!</div>
+      <button class="btn" id="restart-btn">Main Lagi</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const ITEM_POOL = [
+    { emoji:'🍌', type:'organik' },
+    { emoji:'🍂', type:'organik' },
+    { emoji:'🍎', type:'organik' },
+    { emoji:'🥕', type:'organik' },
+    { emoji:'🥚', type:'organik' },
+    { emoji:'🧴', type:'anorganik' },
+    { emoji:'🥫', type:'anorganik' },
+    { emoji:'🍬', type:'anorganik' },
+    { emoji:'🥤', type:'anorganik' },
+    { emoji:'🛍️', type:'anorganik' },
+  ];
+  const POSITIONS = [
+    {top:'44%', left:'6%'}, {top:'60%', left:'22%'}, {top:'42%', left:'38%'},
+    {top:'66%', left:'52%'}, {top:'46%', left:'66%'}, {top:'62%', left:'80%'},
+    {top:'78%', left:'12%'}, {top:'80%', left:'36%'}, {top:'80%', left:'62%'},
+    {top:'78%', left:'86%'},
+  ];
+  const TOTAL_TIME = 45;
+
+  const introScreen = document.getElementById('intro-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const endScreen = document.getElementById('end-screen');
+  const sceneEl = document.getElementById('scene');
+  const pollutionEl = document.getElementById('pollution');
+  const timerChip = document.getElementById('timer-chip');
+  const scoreChip = document.getElementById('score-chip');
+  const heartsEl = document.getElementById('hearts');
+  const feedbackEl = document.getElementById('feedback');
+  const binOrganik = document.getElementById('bin-organik');
+  const binAnorganik = document.getElementById('bin-anorganik');
+
+  let items = [];
+  let score = 0;
+  let lives = 3;
+  let timeLeft = TOTAL_TIME;
+  let timerInterval = null;
+  let ended = false;
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  function initGame(){
+    ended = false;
+    score = 0;
+    lives = 3;
+    timeLeft = TOTAL_TIME;
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+    scoreChip.textContent = '🗑️ 0/' + ITEM_POOL.length;
+    timerChip.textContent = '⏱ ' + timeLeft;
+    heartsEl.textContent = '❤️❤️❤️';
+    pollutionEl.style.opacity = '0.35';
+
+    sceneEl.querySelectorAll('.trash').forEach(el => el.remove());
+    const shuffledPos = shuffle(POSITIONS);
+    items = ITEM_POOL.map((it, i) => ({ ...it, id:'t'+i, top:shuffledPos[i].top, left:shuffledPos[i].left }));
+
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'trash';
+      el.textContent = item.emoji;
+      el.style.top = item.top;
+      el.style.left = item.left;
+      el.dataset.id = item.id;
+      el.addEventListener('pointerdown', onPointerDown);
+      sceneEl.appendChild(el);
+    });
+
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+      timeLeft--;
+      timerChip.textContent = '⏱ ' + timeLeft;
+      if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        endGame('timeup');
+      }
+    }, 1000);
+
+    introScreen.classList.remove('active');
+    endScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+  }
+
+  function onPointerDown(e){
+    const el = e.currentTarget;
+    if(ended) return;
+    const item = items.find(it => it.id === el.dataset.id);
+    if(!item) return;
+
+    const rect = el.getBoundingClientRect();
+    el.setPointerCapture(e.pointerId);
+    const state = {
+      item, el,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      originLeftPx: rect.left,
+      originTopPx: rect.top,
+    };
+    el.classList.add('dragging');
+    el.style.transition = 'none';
+    el.style.position = 'fixed';
+    el.style.margin = '0';
+    el.style.left = rect.left + 'px';
+    el.style.top = rect.top + 'px';
+
+    function onMove(ev){
+      el.style.left = (ev.clientX - state.offsetX) + 'px';
+      el.style.top = (ev.clientY - state.offsetY) + 'px';
+      updateBinHover(ev.clientX, ev.clientY);
+    }
+    function onUp(ev){
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      try{ el.releasePointerCapture(ev.pointerId); }catch(err){}
+      clearBinHover();
+      finishDrag(state, ev.clientX, ev.clientY);
+    }
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+  }
+
+  function findBinAt(x, y){
+    const bins = [binOrganik, binAnorganik];
+    for(const b of bins){
+      const r = b.getBoundingClientRect();
+      if(x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return b;
+    }
+    return null;
+  }
+
+  function updateBinHover(x, y){
+    const hovered = findBinAt(x, y);
+    binOrganik.classList.toggle('drag-over', hovered === binOrganik);
+    binAnorganik.classList.toggle('drag-over', hovered === binAnorganik);
+  }
+
+  function clearBinHover(){
+    binOrganik.classList.remove('drag-over');
+    binAnorganik.classList.remove('drag-over');
+  }
+
+  function finishDrag(state, x, y){
+    const target = findBinAt(x, y);
+    if(!target){
+      snapBack(state);
+      return;
+    }
+    if(state.item.type === target.dataset.type){
+      correctDrop(state);
+    } else {
+      wrongDrop(state, target);
+    }
+  }
+
+  function snapBack(state){
+    const el = state.el;
+    el.style.transition = 'left .3s ease, top .3s ease';
+    el.style.left = state.originLeftPx + 'px';
+    el.style.top = state.originTopPx + 'px';
+    setTimeout(()=>{
+      el.style.position = 'absolute';
+      el.style.left = state.item.left;
+      el.style.top = state.item.top;
+      el.style.transition = '';
+      el.style.margin = '';
+      el.classList.remove('dragging');
+    }, 300);
+  }
+
+  function correctDrop(state){
+    const el = state.el;
+    el.style.transition = 'transform .25s ease, opacity .25s ease';
+    el.style.transform = 'scale(0.3)';
+    el.style.opacity = '0';
+    setTimeout(()=> el.remove(), 250);
+
+    items = items.filter(it => it.id !== state.item.id);
+    score++;
+    scoreChip.textContent = '🗑️ ' + score + '/' + ITEM_POOL.length;
+    feedbackEl.textContent = 'Betul! Terima kasih sudah membersihkan taman!';
+    feedbackEl.className = 'feedback good';
+    pollutionEl.style.opacity = String(0.35 * (1 - score/ITEM_POOL.length));
+    if(score >= ITEM_POOL.length){
+      clearInterval(timerInterval);
+      setTimeout(()=> endGame('win'), 400);
+    }
+  }
+
+  function wrongDrop(state, binEl){
+    binEl.classList.add('shake');
+    setTimeout(()=> binEl.classList.remove('shake'), 300);
+    feedbackEl.textContent = 'Belum tepat, coba lihat lagi ya!';
+    feedbackEl.className = 'feedback bad';
+    lives--;
+    heartsEl.textContent = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
+    snapBack(state);
+    if(lives <= 0){
+      clearInterval(timerInterval);
+      setTimeout(()=> endGame('noLives'), 500);
+    }
+  }
+
+  function endGame(reason){
+    ended = true;
+    gameScreen.classList.remove('active');
+    endScreen.classList.add('active');
+
+    const endEmoji = document.getElementById('end-emoji');
+    const endTitle = document.getElementById('end-title');
+    if(reason === 'win'){
+      endEmoji.textContent = '🎉';
+      endTitle.textContent = 'Taman Bersih Semua!';
+    } else if(reason === 'timeup'){
+      endEmoji.textContent = '⏰';
+      endTitle.textContent = 'Waktu Habis!';
+    } else {
+      endEmoji.textContent = '💪';
+      endTitle.textContent = 'Terus Semangat!';
+    }
+
+    document.getElementById('end-score-text').textContent =
+      'Sampah yang berhasil disortir: ' + score + ' dari ' + ITEM_POOL.length;
+
+    let starCount = 1;
+    const ratio = score / ITEM_POOL.length;
+    if(ratio === 1) starCount = 3;
+    else if(ratio >= 0.7) starCount = 2;
+
+    const starsEl = document.getElementById('stars');
+    starsEl.innerHTML = '';
+    for(let i=0;i<3;i++){
+      const s = document.createElement('span');
+      s.className = 'star';
+      s.textContent = i < starCount ? '★' : '☆';
+      s.style.animationDelay = (i*0.15)+'s';
+      s.style.color = i < starCount ? '#FFC94A' : '#DDD';
+      starsEl.appendChild(s);
+    }
+  }
+
+  document.getElementById('start-btn').addEventListener('click', initGame);
+  document.getElementById('restart-btn').addEventListener('click', initGame);
+</script>
+</body>
+</html>
