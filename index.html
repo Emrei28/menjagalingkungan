@@ -2,502 +2,232 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bersihkan Taman Kita!</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --cream:#FFFBF1;
-    --leaf:#3FA35A;
-    --leaf-dark:#2B7A42;
-    --sky:#4FBEDB;
-    --sun:#FFC94A;
-    --coral:#FF7A5C;
-    --ink:#2B3A32;
-    --paper:#FFFFFF;
-    --organik:#5FAE4A;
-    --anorganik:#EFAA2E;
-  }
-  *{box-sizing:border-box;}
-  html,body{
-    margin:0;
-    min-height:100vh;
-    font-family:'Baloo 2', sans-serif;
-    background:var(--cream);
-    color:var(--ink);
-    overflow-x:hidden;
-  }
-  body{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px 14px;
-    position:relative;
-  }
+:root{--cream:#FFFBF1;--leaf:#3FA35A;--leaf-dark:#2B7A42;--sky:#4FBEDB;--sun:#FFC94A;--coral:#FF7A5C;--ink:#2B3A32;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:'Baloo 2',system-ui,sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px 12px}
+.stage{width:100%;max-width:480px}
+.card{background:#fff;border:3px solid var(--ink);border-radius:32px 12px 32px 12px;box-shadow:7px 7px 0 var(--ink);padding:16px 16px 20px}
+.screen{display:none}.screen.active{display:block}
+.title{font-weight:800;font-size:1.15rem;color:var(--leaf-dark);margin:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.chip{border:2.5px solid var(--ink);border-radius:12px;padding:3px 10px;font-weight:800;font-size:.9rem;box-shadow:3px 3px 0 var(--ink);white-space:nowrap;display:inline-block}
+.chip.timer{background:var(--sky);color:#fff}.chip.score{background:var(--sun)}
+.chip.low{background:var(--coral);animation:pulse .6s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.subbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;min-height:30px}
+.hearts{font-size:1.15rem;letter-spacing:2px}
+.combo{font-weight:800;color:var(--coral);font-size:.95rem;opacity:0;transition:opacity .2s}.combo.on{opacity:1}
+.progress{height:12px;border:2.5px solid var(--ink);border-radius:10px;background:#eee;overflow:hidden;margin-bottom:10px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--leaf),#8BD36A);transition:width .4s}
 
-  .blob{ position:fixed; border-radius:50%; filter:blur(2px); opacity:0.5; z-index:0; }
-  .blob1{width:170px;height:170px;background:#CDEFD8;top:-60px;left:-60px;}
-  .blob2{width:140px;height:140px;background:#CDEEF7;bottom:-40px;right:-40px;}
-  .blob3{width:90px;height:90px;background:#FFE9BE;top:60%;left:-30px;}
+/* scene */
+.scene{position:relative;height:250px;border-radius:20px;border:3px solid var(--ink);overflow:hidden;margin-bottom:12px;
+ background:linear-gradient(#BEE7F5 0 40%,#A9DB86 40% 100%)}
+.sun{position:absolute;top:10px;right:16px;font-size:2rem;animation:spin 20s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cloud{position:absolute;font-size:2rem;opacity:.9;animation:drift 25s linear infinite}
+@keyframes drift{from{left:-12%}to{left:105%}}
+.deco{position:absolute;font-size:2.2rem;pointer-events:none}
+.pollution{position:absolute;inset:0;background:rgba(107,88,66,.4);transition:opacity .6s;pointer-events:none}
+.trash{position:absolute;font-size:2.3rem;line-height:1;cursor:grab;touch-action:none;user-select:none;z-index:5;
+ filter:drop-shadow(1px 3px 0 rgba(0,0,0,.2));animation:bob 1.8s ease-in-out infinite}
+.trash:nth-child(odd){animation-delay:-.7s}
+@keyframes bob{50%{transform:translateY(-4px) rotate(4deg)}}
+.trash.sel{outline:3px dashed var(--coral);outline-offset:4px;border-radius:12px}
+.trash.dragging{cursor:grabbing;z-index:99;animation:none;transform:scale(1.3);filter:drop-shadow(3px 7px 0 rgba(0,0,0,.25))}
+.mascot{position:absolute;left:8px;bottom:6px;display:flex;align-items:flex-end;gap:6px;z-index:6;pointer-events:none;max-width:92%}
+.mascot .m{font-size:2.2rem}
+.bubble{background:#fff;border:2.5px solid var(--ink);border-radius:14px 14px 14px 2px;padding:3px 10px;font-weight:700;font-size:.82rem;line-height:1.25;display:none}
+.bubble.show{display:block}.bubble.good{background:#EAF7E4}.bubble.bad{background:#FFE9E3}
 
-  .stage{ position:relative; z-index:1; width:100%; max-width:480px; }
+/* bins */
+.bins{display:flex;gap:10px;margin-bottom:6px}
+.bin{flex:1;border:3px solid var(--ink);border-radius:18px;padding:6px 4px 8px;text-align:center;cursor:pointer;box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.bin.organik{background:#EAF7E4}.bin.anorganik{background:#FFF3DC}
+.bin svg{width:78px;height:86px;display:block;margin:0 auto;overflow:visible}
+.bin .lid{transform-origin:14px 36px;transition:transform .2s}
+.bin.drag-over{transform:scale(1.07);box-shadow:6px 6px 0 var(--ink)}
+.bin.drag-over .lid,.bin.ready .lid{transform:rotate(-28deg)}
+.bin.ready{animation:pulse .5s infinite alternate}
+.bin-label{font-weight:800;font-size:1rem;line-height:1.1}
+.bin-sub{font-size:.75rem;font-weight:600;opacity:.8}
+.shake{animation:shake .3s}@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.hint{text-align:center;font-size:.8rem;font-weight:600;opacity:.7;margin:4px 0 0}
 
-  .card{
-    background:var(--paper);
-    border:3px solid var(--ink);
-    border-radius:32px 12px 32px 12px;
-    box-shadow:7px 7px 0 var(--ink);
-    padding:20px 20px 24px;
-  }
+.btn{display:block;width:100%;border:3px solid var(--ink);border-radius:16px;background:var(--sun);padding:12px;font:800 1.05rem 'Baloo 2',sans-serif;color:var(--ink);cursor:pointer;box-shadow:4px 4px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 
-  .screen{ display:none; }
-  .screen.active{ display:block; }
-
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:12px; gap:8px; flex-wrap:wrap;
-  }
-  .title{
-    font-weight:800; font-size:1.15rem; color:var(--leaf-dark); margin:0; line-height:1.2;
-  }
-  .stat-row{ display:flex; gap:8px; }
-  .chip{
-    border:2.5px solid var(--ink); border-radius:12px; padding:4px 10px;
-    font-weight:700; font-size:0.9rem; box-shadow:3px 3px 0 var(--ink); white-space:nowrap;
-  }
-  .chip.timer{ background:var(--sky); color:#fff; }
-  .chip.score{ background:var(--sun); }
-
-  .hearts{ font-size:1.05rem; letter-spacing:2px; }
-
-  /* ---------- INTRO ---------- */
-  .intro-emoji{ font-size:3rem; text-align:center; margin-bottom:4px;}
-  .intro-text{ font-size:1rem; line-height:1.55; text-align:center; margin:0 0 10px; }
-  .legend{
-    display:flex; gap:10px; margin:14px 0 18px;
-  }
-  .legend-box{
-    flex:1; border-radius:16px; padding:10px; text-align:center;
-    border:2.5px solid var(--ink);
-  }
-  .legend-box.organik{ background:#EAF7E4; }
-  .legend-box.anorganik{ background:#FFF3DC; }
-  .legend-title{ font-weight:800; font-size:0.9rem; margin-bottom:4px; }
-  .legend-icons{ font-size:1.4rem; }
-
-  /* ---------- SCENE ---------- */
-  .scene{
-    position:relative;
-    height:230px;
-    border-radius:20px;
-    border:3px solid var(--ink);
-    overflow:hidden;
-    background:linear-gradient(to bottom, #BEE7F5 0%, #BEE7F5 38%, #BFE3A0 38%, #9FD17E 100%);
-    margin-bottom:14px;
-  }
-  .pollution{
-    position:absolute; inset:0;
-    background:rgba(107,88,66,0.35);
-    transition:opacity .5s ease;
-    pointer-events:none;
-  }
-  .trash{
-    position:absolute;
-    font-size:1.9rem;
-    cursor:grab;
-    touch-action:none;
-    transition:transform .15s ease;
-    filter:drop-shadow(1px 2px 0 rgba(0,0,0,0.15));
-  }
-  .trash.dragging{
-    cursor:grabbing;
-    z-index:50;
-    transform:scale(1.2);
-    filter:drop-shadow(2px 5px 0 rgba(0,0,0,0.25));
-  }
-
-  .bins-row{ display:flex; gap:10px; margin-bottom:10px; }
-  .bin{
-    flex:1;
-    border:3px solid var(--ink);
-    border-radius:16px;
-    padding:10px 6px;
-    text-align:center;
-    cursor:pointer;
-    box-shadow:4px 4px 0 var(--ink);
-    transition:transform .1s ease, box-shadow .1s ease;
-  }
-  .bin:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
-  .bin.organik{ background:#EAF7E4; }
-  .bin.anorganik{ background:#FFF3DC; }
-  .bin.drag-over{
-    transform:scale(1.07);
-    box-shadow:6px 6px 0 var(--ink);
-    filter:brightness(1.05);
-  }
-  .bin-label{ font-weight:800; font-size:0.85rem; margin-top:2px; }
-  .bin-emoji{ font-size:1.6rem; }
-
-  @keyframes shake{
-    0%,100%{ transform:translateX(0); }
-    25%{ transform:translateX(-6px); }
-    75%{ transform:translateX(6px); }
-  }
-  .shake{ animation:shake .3s ease; }
-
-  .feedback{ text-align:center; font-weight:700; min-height:26px; margin-bottom:6px; font-size:0.98rem; }
-  .feedback.good{ color:var(--leaf-dark); }
-  .feedback.bad{ color:var(--coral); }
-
-  .btn{
-    display:block; width:100%; border:3px solid var(--ink); border-radius:16px;
-    background:var(--sun); padding:13px; font-family:inherit; font-weight:800;
-    font-size:1.02rem; color:var(--ink); cursor:pointer;
-    box-shadow:4px 4px 0 var(--ink); transition:transform .1s ease, box-shadow .1s ease;
-  }
-  .btn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
-
-  /* ---------- END ---------- */
-  .end-emoji{ font-size:3.2rem; text-align:center; }
-  .end-title{ text-align:center; font-weight:800; font-size:1.3rem; color:var(--leaf-dark); margin:4px 0 2px; }
-  .end-score{ text-align:center; font-size:1.02rem; margin-bottom:6px; }
-  .stars{ text-align:center; font-size:2.1rem; margin-bottom:14px; letter-spacing:6px; }
-  .star{ display:inline-block; opacity:0; transform:scale(0.3); animation:starPop .4s ease forwards; }
-  @keyframes starPop{ to{ opacity:1; transform:scale(1); } }
-  .ajakan-box{
-    background:#EAF7E4; border:2px solid var(--leaf); border-radius:14px;
-    padding:12px 14px; text-align:center; font-weight:700; color:var(--leaf-dark);
-    font-size:0.98rem; margin-bottom:18px; line-height:1.4;
-  }
-
-  @media (max-width:380px){
-    .title{ font-size:1rem; }
-    .scene{ height:200px; }
-    .trash{ font-size:1.6rem; }
-  }
+/* intro & end */
+.center{text-align:center}.big{font-size:3rem}
+.intro-text{line-height:1.5;margin:6px 0}
+.legend{display:flex;gap:10px;margin:12px 0}
+.legend div{flex:1;border:2.5px solid var(--ink);border-radius:16px;padding:8px 4px;text-align:center}
+.legend svg{width:56px;height:62px}
+.legend b{display:block}.legend small{font-size:.95rem}
+.stars{font-size:2.3rem;letter-spacing:6px;margin:6px 0 12px}
+.star{display:inline-block;opacity:0;transform:scale(.3);animation:pop .4s forwards}@keyframes pop{to{opacity:1;transform:scale(1)}}
+.ajakan{background:#EAF7E4;border:2px solid var(--leaf);border-radius:14px;padding:10px 12px;font-weight:700;color:var(--leaf-dark);margin-bottom:14px;line-height:1.35}
+.conf{position:fixed;font-size:1.4rem;pointer-events:none;z-index:200;transition:transform .9s ease-out,opacity .9s}
+@media(max-width:380px){.scene{height:230px}.trash{font-size:2rem}.bin svg{width:64px;height:72px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
 <body>
+<div class="stage"><div class="card">
 
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
-<div class="blob blob3"></div>
-
-<div class="stage">
-  <div class="card">
-
-    <!-- INTRO SCREEN -->
-    <div class="screen active" id="intro-screen">
-      <div class="intro-emoji">🌳🗑️🌍</div>
-      <h1 class="title" style="text-align:center; font-size:1.3rem;">Bersihkan Taman Kita!</h1>
-      <p class="intro-text">Taman ini penuh sampah! Tarik (drag) sampahnya ke tempat sampah yang benar.</p>
-
-      <div class="legend">
-        <div class="legend-box organik">
-          <div class="legend-title">Organik</div>
-          <div class="legend-icons">🍌 🍂 🥚</div>
-        </div>
-        <div class="legend-box anorganik">
-          <div class="legend-title">Anorganik</div>
-          <div class="legend-icons">🧴 🥫 🛍️</div>
-        </div>
-      </div>
-
-      <p class="intro-text">Sortir sebelum waktu habis dan jangan sampai salah 3 kali ya!</p>
-      <button class="btn" id="start-btn">Mulai Bersih-Bersih! ▸</button>
-    </div>
-
-    <!-- GAME SCREEN -->
-    <div class="screen" id="game-screen">
-      <div class="topbar">
-        <p class="title">Bersihkan Taman</p>
-        <div class="stat-row">
-          <div class="chip timer" id="timer-chip">⏱ 45</div>
-          <div class="chip score" id="score-chip">🗑️ 0/10</div>
-        </div>
-      </div>
-      <div class="hearts" id="hearts">❤️❤️❤️</div>
-      <br>
-
-      <div class="scene" id="scene">
-        <div class="pollution" id="pollution"></div>
-      </div>
-
-      <div class="bins-row">
-        <div class="bin organik" data-type="organik" id="bin-organik">
-          <div class="bin-emoji">🟢</div>
-          <div class="bin-label">Organik</div>
-        </div>
-        <div class="bin anorganik" data-type="anorganik" id="bin-anorganik">
-          <div class="bin-emoji">🟡</div>
-          <div class="bin-label">Anorganik</div>
-        </div>
-      </div>
-
-      <p class="feedback" id="feedback"></p>
-    </div>
-
-    <!-- END SCREEN -->
-    <div class="screen" id="end-screen">
-      <div class="end-emoji" id="end-emoji">🎉</div>
-      <p class="end-title" id="end-title">Taman Bersih!</p>
-      <p class="end-score" id="end-score-text"></p>
-      <div class="stars" id="stars"></div>
-      <div class="ajakan-box">Mari selalu membuang sampah pada tempatnya untuk menjaga lingkungan!</div>
-      <button class="btn" id="restart-btn">Main Lagi</button>
-    </div>
-
+<div class="screen active" id="intro">
+  <div class="center big">🌳🐿️🌍</div>
+  <h1 class="title center" style="font-size:1.4rem">Bersihkan Taman Kita!</h1>
+  <p class="intro-text center">Taman ini penuh sampah! Seret sampah ke <b>tempat sampah</b> yang benar.</p>
+  <div class="legend">
+    <div style="background:#EAF7E4"><svg data-bin="organik"></svg><b>Organik</b><small>🍌 🍂 🥚</small></div>
+    <div style="background:#FFF3DC"><svg data-bin="anorganik"></svg><b>Anorganik</b><small>🧴 🥫 🛍️</small></div>
   </div>
+  <p class="intro-text center"><b>Organik</b> = bisa membusuk. <b>Anorganik</b> = sulit membusuk.<br>Jangan salah 3 kali ya!</p>
+  <button class="btn" id="start">Mulai Bersih-Bersih! ▸</button>
 </div>
 
+<div class="screen" id="game">
+  <div class="topbar">
+    <p class="title">Bersihkan Taman</p>
+    <div><span class="chip timer" id="timer">⏱ 60</span> <span class="chip score" id="score">🗑️ 0/12</span></div>
+  </div>
+  <div class="subbar"><div class="hearts" id="hearts">❤️❤️❤️</div><div class="combo" id="combo"></div></div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="scene" id="scene">
+    <div class="sun">☀️</div>
+    <div class="cloud" style="top:8px;animation-delay:-5s">☁️</div>
+    <div class="cloud" style="top:30px;font-size:1.4rem;animation-duration:35s;animation-delay:-20s">☁️</div>
+    <div class="deco" style="top:22%;left:4%">🌳</div>
+    <div class="deco" style="top:24%;left:78%">🌳</div>
+    <div class="deco" style="top:36%;left:44%;font-size:1.4rem">🌼</div>
+    <div class="pollution" id="poll"></div>
+    <div class="mascot"><span class="m">🐿️</span><div class="bubble" id="bubble"></div></div>
+  </div>
+  <div class="bins">
+    <div class="bin organik" data-type="organik" id="bin-organik"><svg data-bin="organik"></svg><div class="bin-label">Organik</div><div class="bin-sub">bisa membusuk</div></div>
+    <div class="bin anorganik" data-type="anorganik" id="bin-anorganik"><svg data-bin="anorganik"></svg><div class="bin-label">Anorganik</div><div class="bin-sub">sulit membusuk</div></div>
+  </div>
+  <p class="hint">Seret sampah ke tempat sampah, atau sentuh sampah lalu sentuh tempat sampahnya.</p>
+</div>
+
+<div class="screen center" id="end">
+  <div class="big" id="e-emoji">🎉</div>
+  <p class="title" style="font-size:1.4rem" id="e-title"></p>
+  <p id="e-score"></p>
+  <div class="stars" id="stars"></div>
+  <div class="ajakan">Mari selalu membuang sampah pada tempatnya untuk menjaga lingkungan! 🌱</div>
+  <button class="btn" id="again">Main Lagi</button>
+</div>
+
+</div></div>
+
 <script>
-  const ITEM_POOL = [
-    { emoji:'🍌', type:'organik' },
-    { emoji:'🍂', type:'organik' },
-    { emoji:'🍎', type:'organik' },
-    { emoji:'🥕', type:'organik' },
-    { emoji:'🥚', type:'organik' },
-    { emoji:'🧴', type:'anorganik' },
-    { emoji:'🥫', type:'anorganik' },
-    { emoji:'🍬', type:'anorganik' },
-    { emoji:'🥤', type:'anorganik' },
-    { emoji:'🛍️', type:'anorganik' },
-  ];
-  const POSITIONS = [
-    {top:'44%', left:'6%'}, {top:'60%', left:'22%'}, {top:'42%', left:'38%'},
-    {top:'66%', left:'52%'}, {top:'46%', left:'66%'}, {top:'62%', left:'80%'},
-    {top:'78%', left:'12%'}, {top:'80%', left:'36%'}, {top:'80%', left:'62%'},
-    {top:'78%', left:'86%'},
-  ];
-  const TOTAL_TIME = 45;
+const ITEMS=[
+ ['🍌','Kulit pisang','organik','dari tumbuhan, mudah membusuk'],['🍂','Daun kering','organik','dari pohon, jadi pupuk'],
+ ['🍎','Sisa apel','organik','sisa buah, mudah membusuk'],['🥕','Wortel','organik','sayuran, jadi kompos'],
+ ['🥚','Kulit telur','organik','dari hewan, bisa terurai'],['🍞','Roti basi','organik','sisa makanan, membusuk'],
+ ['🧴','Botol plastik','anorganik','plastik sulit membusuk'],['🥫','Kaleng','anorganik','logam sulit terurai'],
+ ['🍬','Bungkus permen','anorganik','plastik sulit terurai'],['🥤','Gelas plastik','anorganik','plastik sulit terurai'],
+ ['🛍️','Kantong plastik','anorganik','plastik sulit terurai'],['🍾','Botol kaca','anorganik','kaca sulit terurai']];
+const POS=[[44,5],[60,20],[44,36],[62,50],[46,64],[60,80],[74,8],[72,28],[72,50],[74,70],[52,86],[56,34]];
+const TIME=60;
+const $=id=>document.getElementById(id);
+const binSVG=t=>{
+ const c=t==='organik'?['#5FAE4A','#3E8A32','#fff']:['#EFAA2E','#C98614','#fff'];
+ const sym=t==='organik'?'<path d="M50 78c-14-4-18-18-8-30 12 0 20 12 8 30zM50 78c0-10 2-18 8-24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" transform="translate(-2 -2)"/>':'<text x="50" y="80" font-size="30" text-anchor="middle" fill="#fff" font-weight="800">♻</text>';
+ return `<svg viewBox="0 0 100 110"><ellipse cx="50" cy="106" rx="34" ry="4" fill="rgba(0,0,0,.15)"/>
+ <path d="M20 40h60l-6 62q-1 5-6 5H32q-5 0-6-5z" fill="${c[0]}" stroke="#2B3A32" stroke-width="3.5" stroke-linejoin="round"/>
+ <path d="M34 48l3 52M50 48v52M66 48l-3 52" stroke="${c[1]}" stroke-width="3" stroke-linecap="round"/>
+ <circle cx="50" cy="68" r="19" fill="${c[1]}" opacity=".85"/>${sym}
+ <g class="lid"><rect x="14" y="30" width="72" height="12" rx="6" fill="${c[1]}" stroke="#2B3A32" stroke-width="3.5"/><rect x="40" y="20" width="20" height="11" rx="5" fill="${c[1]}" stroke="#2B3A32" stroke-width="3.5"/></g></svg>`;
+};
+document.querySelectorAll('svg[data-bin]').forEach(s=>{s.outerHTML=binSVG(s.dataset.bin)});
 
-  const introScreen = document.getElementById('intro-screen');
-  const gameScreen = document.getElementById('game-screen');
-  const endScreen = document.getElementById('end-screen');
-  const sceneEl = document.getElementById('scene');
-  const pollutionEl = document.getElementById('pollution');
-  const timerChip = document.getElementById('timer-chip');
-  const scoreChip = document.getElementById('score-chip');
-  const heartsEl = document.getElementById('hearts');
-  const feedbackEl = document.getElementById('feedback');
-  const binOrganik = document.getElementById('bin-organik');
-  const binAnorganik = document.getElementById('bin-anorganik');
+let items,score,lives,left,timer,ended,combo,sel,bt;
+const scene=$('scene'),bins=[$('bin-organik'),$('bin-anorganik')];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-  let items = [];
-  let score = 0;
-  let lives = 3;
-  let timeLeft = TOTAL_TIME;
-  let timerInterval = null;
-  let ended = false;
+function beep(f,d=.12){try{const a=beep.c||(beep.c=new (window.AudioContext||window.webkitAudioContext)());const o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.type='triangle';g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+function say(t,k){const b=$('bubble');b.textContent=t;b.className='bubble show '+k;clearTimeout(bt);bt=setTimeout(()=>b.classList.remove('show'),3200)}
+function confetti(el){const r=el.getBoundingClientRect();['⭐','✨','🌟','🍃','💚'].concat(['⭐','✨']).forEach(e=>{const s=document.createElement('span');s.className='conf';s.textContent=e;s.style.left=r.left+r.width/2+'px';s.style.top=r.top+'px';document.body.appendChild(s);
+ requestAnimationFrame(()=>{s.style.transform=`translate(${(Math.random()-.5)*160}px,${-40-Math.random()*90}px) rotate(${Math.random()*360}deg)`;s.style.opacity=0});setTimeout(()=>s.remove(),950)})}
+function show(id){['intro','game','end'].forEach(s=>$(s).classList.toggle('active',s===id))}
 
-  function shuffle(arr){
-    const a=[...arr];
-    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-    return a;
-  }
+function init(){
+ ended=false;score=0;lives=3;left=TIME;combo=0;sel=null;
+ $('hearts').textContent='❤️❤️❤️';$('combo').className='combo';$('bubble').className='bubble';
+ $('score').textContent='🗑️ 0/'+ITEMS.length;$('timer').textContent='⏱ '+left;$('timer').classList.remove('low');
+ $('bar').style.width='0';$('poll').style.opacity=1;
+ scene.querySelectorAll('.trash').forEach(e=>e.remove());
+ const p=shuffle(POS);
+ items=ITEMS.map((it,i)=>({e:it[0],n:it[1],t:it[2],w:it[3],id:'t'+i,top:p[i][0],left:p[i][1]}));
+ items.forEach(it=>{const el=document.createElement('div');el.className='trash';el.textContent=it.e;el.dataset.id=it.id;
+  el.style.top=it.top+'%';el.style.left=it.left+'%';el.style.animationDelay=-Math.random()*2+'s';
+  el.addEventListener('pointerdown',down);scene.appendChild(el)});
+ clearInterval(timer);
+ timer=setInterval(()=>{left--;$('timer').textContent='⏱ '+left;$('timer').classList.toggle('low',left<=10);if(left<=0)end('timeup')},1000);
+ show('game');say('Ayo bantu aku bersihkan taman!','good');
+}
 
-  function initGame(){
-    ended = false;
-    score = 0;
-    lives = 3;
-    timeLeft = TOTAL_TIME;
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'feedback';
-    scoreChip.textContent = '🗑️ 0/' + ITEM_POOL.length;
-    timerChip.textContent = '⏱ ' + timeLeft;
-    heartsEl.textContent = '❤️❤️❤️';
-    pollutionEl.style.opacity = '0.35';
+function binAt(x,y){return bins.find(b=>{const r=b.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})}
+function hover(x,y){const h=binAt(x,y);bins.forEach(b=>b.classList.toggle('drag-over',b===h))}
+function clearSel(){if(sel){sel.classList.remove('sel');sel=null}bins.forEach(b=>b.classList.remove('ready'))}
 
-    sceneEl.querySelectorAll('.trash').forEach(el => el.remove());
-    const shuffledPos = shuffle(POSITIONS);
-    items = ITEM_POOL.map((it, i) => ({ ...it, id:'t'+i, top:shuffledPos[i].top, left:shuffledPos[i].left }));
+function down(e){
+ if(ended)return;const el=e.currentTarget,it=items.find(i=>i.id===el.dataset.id);if(!it)return;
+ const r=el.getBoundingClientRect(),sx=e.clientX,sy=e.clientY;let moved=false;
+ el.setPointerCapture(e.pointerId);
+ const move=ev=>{
+  if(!moved&&Math.hypot(ev.clientX-sx,ev.clientY-sy)<6)return;
+  if(!moved){moved=true;clearSel();el.classList.add('dragging');el.style.position='fixed';el.style.left=r.left+'px';el.style.top=r.top+'px'}
+  el.style.left=r.left+(ev.clientX-sx)+'px';el.style.top=r.top+(ev.clientY-sy)+'px';hover(ev.clientX,ev.clientY)};
+ const up=ev=>{
+  el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
+  bins.forEach(b=>b.classList.remove('drag-over'));
+  if(!moved){clearSel();sel=el;el.classList.add('sel');bins.forEach(b=>b.classList.add('ready'));return}
+  const b=binAt(ev.clientX,ev.clientY);
+  b?drop(it,el,b):back(it,el)};
+ el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+}
+function back(it,el){el.classList.remove('dragging');el.style.position='absolute';el.style.left=it.left+'%';el.style.top=it.top+'%'}
 
-    items.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'trash';
-      el.textContent = item.emoji;
-      el.style.top = item.top;
-      el.style.left = item.left;
-      el.dataset.id = item.id;
-      el.addEventListener('pointerdown', onPointerDown);
-      sceneEl.appendChild(el);
-    });
+function drop(it,el,bin){
+ clearSel();
+ if(it.t===bin.dataset.type){
+  confetti(bin);beep(660);setTimeout(()=>beep(880),90);
+  el.remove();items=items.filter(i=>i!==it);score++;combo++;
+  $('score').textContent='🗑️ '+score+'/'+ITEMS.length;$('bar').style.width=score/ITEMS.length*100+'%';
+  $('poll').style.opacity=1-score/ITEMS.length;
+  const c=$('combo');c.textContent=combo>=2?'🔥 Beruntun x'+combo+'!':'';c.className='combo'+(combo>=2?' on':'');
+  say(`Betul! ${it.n}: ${it.w}.`,'good');
+  if(!items.length){clearInterval(timer);setTimeout(()=>end('win'),700)}
+ }else{
+  beep(180,.25);bin.classList.add('shake');setTimeout(()=>bin.classList.remove('shake'),300);
+  combo=0;$('combo').className='combo';lives--;
+  $('hearts').textContent='❤️'.repeat(lives)+'🤍'.repeat(3-lives);
+  say(`Belum tepat. ${it.n}: ${it.w}, jadi ${it.t}.`,'bad');
+  back(it,el);
+  if(lives<=0){clearInterval(timer);setTimeout(()=>end('lives'),900)}
+ }
+}
+bins.forEach(b=>b.addEventListener('click',()=>{if(sel&&!ended){const it=items.find(i=>i.id===sel.dataset.id);if(it)drop(it,sel,b)}}));
 
-    if(timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(()=>{
-      timeLeft--;
-      timerChip.textContent = '⏱ ' + timeLeft;
-      if(timeLeft <= 0){
-        clearInterval(timerInterval);
-        endGame('timeup');
-      }
-    }, 1000);
-
-    introScreen.classList.remove('active');
-    endScreen.classList.remove('active');
-    gameScreen.classList.add('active');
-  }
-
-  function onPointerDown(e){
-    const el = e.currentTarget;
-    if(ended) return;
-    const item = items.find(it => it.id === el.dataset.id);
-    if(!item) return;
-
-    const rect = el.getBoundingClientRect();
-    el.setPointerCapture(e.pointerId);
-    const state = {
-      item, el,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      originLeftPx: rect.left,
-      originTopPx: rect.top,
-    };
-    el.classList.add('dragging');
-    el.style.transition = 'none';
-    el.style.position = 'fixed';
-    el.style.margin = '0';
-    el.style.left = rect.left + 'px';
-    el.style.top = rect.top + 'px';
-
-    function onMove(ev){
-      el.style.left = (ev.clientX - state.offsetX) + 'px';
-      el.style.top = (ev.clientY - state.offsetY) + 'px';
-      updateBinHover(ev.clientX, ev.clientY);
-    }
-    function onUp(ev){
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerup', onUp);
-      try{ el.releasePointerCapture(ev.pointerId); }catch(err){}
-      clearBinHover();
-      finishDrag(state, ev.clientX, ev.clientY);
-    }
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerup', onUp);
-  }
-
-  function findBinAt(x, y){
-    const bins = [binOrganik, binAnorganik];
-    for(const b of bins){
-      const r = b.getBoundingClientRect();
-      if(x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return b;
-    }
-    return null;
-  }
-
-  function updateBinHover(x, y){
-    const hovered = findBinAt(x, y);
-    binOrganik.classList.toggle('drag-over', hovered === binOrganik);
-    binAnorganik.classList.toggle('drag-over', hovered === binAnorganik);
-  }
-
-  function clearBinHover(){
-    binOrganik.classList.remove('drag-over');
-    binAnorganik.classList.remove('drag-over');
-  }
-
-  function finishDrag(state, x, y){
-    const target = findBinAt(x, y);
-    if(!target){
-      snapBack(state);
-      return;
-    }
-    if(state.item.type === target.dataset.type){
-      correctDrop(state);
-    } else {
-      wrongDrop(state, target);
-    }
-  }
-
-  function snapBack(state){
-    const el = state.el;
-    el.style.transition = 'left .3s ease, top .3s ease';
-    el.style.left = state.originLeftPx + 'px';
-    el.style.top = state.originTopPx + 'px';
-    setTimeout(()=>{
-      el.style.position = 'absolute';
-      el.style.left = state.item.left;
-      el.style.top = state.item.top;
-      el.style.transition = '';
-      el.style.margin = '';
-      el.classList.remove('dragging');
-    }, 300);
-  }
-
-  function correctDrop(state){
-    const el = state.el;
-    el.style.transition = 'transform .25s ease, opacity .25s ease';
-    el.style.transform = 'scale(0.3)';
-    el.style.opacity = '0';
-    setTimeout(()=> el.remove(), 250);
-
-    items = items.filter(it => it.id !== state.item.id);
-    score++;
-    scoreChip.textContent = '🗑️ ' + score + '/' + ITEM_POOL.length;
-    feedbackEl.textContent = 'Betul! Terima kasih sudah membersihkan taman!';
-    feedbackEl.className = 'feedback good';
-    pollutionEl.style.opacity = String(0.35 * (1 - score/ITEM_POOL.length));
-    if(score >= ITEM_POOL.length){
-      clearInterval(timerInterval);
-      setTimeout(()=> endGame('win'), 400);
-    }
-  }
-
-  function wrongDrop(state, binEl){
-    binEl.classList.add('shake');
-    setTimeout(()=> binEl.classList.remove('shake'), 300);
-    feedbackEl.textContent = 'Belum tepat, coba lihat lagi ya!';
-    feedbackEl.className = 'feedback bad';
-    lives--;
-    heartsEl.textContent = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
-    snapBack(state);
-    if(lives <= 0){
-      clearInterval(timerInterval);
-      setTimeout(()=> endGame('noLives'), 500);
-    }
-  }
-
-  function endGame(reason){
-    ended = true;
-    gameScreen.classList.remove('active');
-    endScreen.classList.add('active');
-
-    const endEmoji = document.getElementById('end-emoji');
-    const endTitle = document.getElementById('end-title');
-    if(reason === 'win'){
-      endEmoji.textContent = '🎉';
-      endTitle.textContent = 'Taman Bersih Semua!';
-    } else if(reason === 'timeup'){
-      endEmoji.textContent = '⏰';
-      endTitle.textContent = 'Waktu Habis!';
-    } else {
-      endEmoji.textContent = '💪';
-      endTitle.textContent = 'Terus Semangat!';
-    }
-
-    document.getElementById('end-score-text').textContent =
-      'Sampah yang berhasil disortir: ' + score + ' dari ' + ITEM_POOL.length;
-
-    let starCount = 1;
-    const ratio = score / ITEM_POOL.length;
-    if(ratio === 1) starCount = 3;
-    else if(ratio >= 0.7) starCount = 2;
-
-    const starsEl = document.getElementById('stars');
-    starsEl.innerHTML = '';
-    for(let i=0;i<3;i++){
-      const s = document.createElement('span');
-      s.className = 'star';
-      s.textContent = i < starCount ? '★' : '☆';
-      s.style.animationDelay = (i*0.15)+'s';
-      s.style.color = i < starCount ? '#FFC94A' : '#DDD';
-      starsEl.appendChild(s);
-    }
-  }
-
-  document.getElementById('start-btn').addEventListener('click', initGame);
-  document.getElementById('restart-btn').addEventListener('click', initGame);
+function end(r){
+ ended=true;clearInterval(timer);show('end');
+ $('e-emoji').textContent=r==='win'?'🎉':r==='timeup'?'⏰':'💪';
+ $('e-title').textContent=r==='win'?'Taman Bersih Semua!':r==='timeup'?'Waktu Habis!':'Terus Semangat!';
+ $('e-score').textContent=`Sampah yang berhasil disortir: ${score} dari ${ITEMS.length}`;
+ const n=score===ITEMS.length?3:score/ITEMS.length>=.7?2:1,s=$('stars');s.innerHTML='';
+ for(let i=0;i<3;i++){const x=document.createElement('span');x.className='star';x.textContent=i<n?'★':'☆';x.style.color=i<n?'#FFC94A':'#DDD';x.style.animationDelay=i*.15+'s';s.appendChild(x)}
+ if(r==='win'){for(let i=0;i<4;i++)setTimeout(()=>confetti($('e-emoji')),i*200);beep(784,.2)}
+}
+$('start').onclick=init;$('again').onclick=init;
 </script>
 </body>
 </html>
